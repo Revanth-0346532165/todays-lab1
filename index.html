@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Singleton Pattern: Food Delivery App Config</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Singleton Pattern Demo</h1>
+            <p class="text-lg text-gray-600 mt-2">Food Delivery App Configuration</p>
+            <p class="text-sm text-gray-500 mt-1">This shows that only one configuration object is ever created.</p>
+        </div>
+
+        <!-- Section to display configuration from the Singleton instance -->
+        <div id="config-display" class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6 text-center">
+            <h2 class="text-xl font-semibold mb-4">Current App Configuration</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Currency</p>
+                    <p id="currency" class="text-lg font-semibold text-indigo-600">Not Loaded</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Tax Rule (%)</p>
+                    <p id="tax" class="text-lg font-semibold text-indigo-600">Not Loaded</p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <p class="text-sm font-medium text-gray-500">Discount Policy</p>
+                    <p id="discount" class="text-lg font-semibold text-indigo-600">Not Loaded</p>
+                </div>
+            </div>
+             <p class="text-xs text-gray-400 mt-4">Instance ID: <span id="instance-id" class="font-mono">null</span></p>
+        </div>
+
+        <!-- Buttons to get the instance -->
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+            <button id="getInstanceBtn1" class="bg-indigo-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                Get Config Instance (Call 1)
+            </button>
+            <button id="getInstanceBtn2" class="bg-teal-500 text-white font-semibold py-3 px-6 rounded-lg shadow-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                Get Config Instance (Call 2)
+            </button>
+        </div>
+
+        <!-- Log to show what's happening -->
+        <div>
+            <h3 class="text-lg font-semibold mb-2 text-center">Action Log</h3>
+            <div id="log" class="bg-gray-900 text-white font-mono text-sm rounded-lg p-4 h-48 overflow-y-auto">
+                <p class="text-gray-400">&gt; Waiting for actions...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Singleton Implementation using a JavaScript Module Pattern (IIFE) ---
+
+        const AppConfig = (function () {
+            // This 'instance' variable is private and inaccessible from the outside.
+            // It will hold the single instance of our configuration object.
+            let instance;
+
+            // This is the actual object with its properties and methods.
+            // It will only be created once.
+            function createInstance() {
+                // Generate a random ID to prove it's the same object every time.
+                const objectId = Math.random().toString(36).substring(2, 9);
+                
+                // The shared configuration settings for the entire app.
+                const currency = 'USD';
+                const taxRule = 8.5; // in percent
+                const discountPolicy = 'WEEKEND10';
+
+                return {
+                    objectId,
+                    getCurrency: () => currency,
+                    getTaxRule: () => taxRule,
+                    getDiscountPolicy: () => discountPolicy,
+                };
+            }
+
+            // This is the public interface for our Singleton.
+            // It's the only way to get the configuration object.
+            return {
+                getInstance: function () {
+                    // If an instance doesn't exist yet...
+                    if (!instance) {
+                        // ...create it.
+                        instance = createInstance();
+                        logMessage("A new AppConfig instance was created.", "success");
+                    } else {
+                        logMessage("An existing AppConfig instance was returned.", "info");
+                    }
+                    // Always return the one and only instance.
+                    return instance;
+                }
+            };
+        })();
+
+
+        // --- UI Demonstration Logic ---
+
+        const getInstanceBtn1 = document.getElementById('getInstanceBtn1');
+        const getInstanceBtn2 = document.getElementById('getInstanceBtn2');
+        const logContainer = document.getElementById('log');
+
+        // UI elements for displaying config
+        const currencyEl = document.getElementById('currency');
+        const taxEl = document.getElementById('tax');
+        const discountEl = document.getElementById('discount');
+        const instanceIdEl = document.getElementById('instance-id');
+
+        // A helper function to log messages to the screen
+        function logMessage(message, type = 'default') {
+            const p = document.createElement('p');
+            let typeClass = 'text-gray-300';
+            if (type === 'success') typeClass = 'text-green-400';
+            if (type === 'info') typeClass = 'text-blue-400';
+            
+            p.className = typeClass;
+            p.innerHTML = `&gt; ${message}`;
+            logContainer.appendChild(p);
+            
+            // Auto-scroll to the bottom
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // A function to update the display with config values
+        function updateDisplay() {
+            logMessage("Requesting instance to update UI...");
+            const config = AppConfig.getInstance();
+            
+            currencyEl.textContent = config.getCurrency();
+            taxEl.textContent = `${config.getTaxRule()}%`;
+            discountEl.textContent = config.getDiscountPolicy();
+            instanceIdEl.textContent = config.objectId;
+        }
+
+        // Add event listeners to the buttons
+        getInstanceBtn1.addEventListener('click', updateDisplay);
+        getInstanceBtn2.addEventListener('click', updateDisplay);
+        
+        // Clear the initial log message
+        logContainer.innerHTML = '';
+        logMessage("App initialized. Click a button to get the config instance.", "default");
+
+    </script>
+</body>
+</html>
