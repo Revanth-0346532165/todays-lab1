@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Singleton Pattern Demo – AppConfig</title>
+  <style>
+    :root { --bg:#0f172a; --panel:#111827; --ink:#e5e7eb; --muted:#9ca3af; --accent:#22c55e; --warn:#f59e0b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background: var(--bg); color: var(--ink); }
+    header { padding: 24px; text-align: center; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p.subtitle { margin: 0; color: var(--muted); }
+    main { max-width: 980px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; grid-template-columns: 1.2fr .8fr; }
+    .card { background: var(--panel); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 16px; box-shadow: 0 10px 24px rgba(0,0,0,.25); }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    button { appearance: none; border: 1px solid rgba(255,255,255,.12); background: transparent; color: var(--ink); padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: .15s transform ease, .2s background ease; }
+    button:hover { transform: translateY(-1px); background: rgba(255,255,255,.04); }
+    button.primary { border-color: rgba(34,197,94,.5); }
+    button.warn { border-color: rgba(245,158,11,.5); }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { margin: 0; background: #0b1220; border-radius: 12px; padding: 12px; overflow: auto; border: 1px solid rgba(255,255,255,.06); }
+    .kv { display: grid; grid-template-columns: 180px 1fr; gap: 8px 12px; margin-top: 8px; }
+    .kv div { padding: 8px 10px; background: #0b1220; border-radius: 10px; border: 1px solid rgba(255,255,255,.06); }
+    .log { height: 280px; overflow: auto; background: #0b1220; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.06); font-size: 13px; }
+    .badge { display:inline-block; padding:2px 8px; border-radius: 999px; border:1px solid rgba(255,255,255,.12); color: var(--muted); font-size: 12px; }
+    footer { text-align: center; color: var(--muted); padding: 20px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Singleton Pattern Demo – <span class="badge">AppConfig (Food Delivery App)</span></h1>
+    <p class="subtitle">A single, shared configuration for currency, tax and discount across the entire app.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Controls</h2>
+      <div class="row" style="margin-bottom:12px">
+        <button id="btnGetA" class="primary">Get Instance A</button>
+        <button id="btnGetB" class="primary">Get Instance B</button>
+        <button id="btnCompare">Compare A === B</button>
+        <button id="btnMutate" class="warn">Mutate via A (discount → "FESTIVE20")</button>
+        <button id="btnShow">Show Config (via B)</button>
+      </div>
+      <div class="kv">
+        <div>Instance A ID</div><div id="idA">—</div>
+        <div>Instance B ID</div><div id="idB">—</div>
+        <div>Strict Equality</div><div id="eq">—</div>
+      </div>
+      <h3>Log</h3>
+      <div id="log" class="log" aria-live="polite"></div>
+    </section>
+
+    <aside class="card">
+      <h2>How this works</h2>
+      <p>
+        The <code>AppConfig</code> class uses a <strong>private static field</strong> and a
+        <code>getInstance()</code> accessor to ensure only one instance exists.
+      </p>
+      <pre><code>class AppConfig {
+  static #instance;
+  constructor() {
+    if (AppConfig.#instance) return AppConfig.#instance;
+    this.currency = "INR";
+    this.taxRate = 0.18;
+    this.discountPolicy = "FESTIVE10";
+    this.#id = crypto.randomUUID();
+    AppConfig.#instance = this;
+  }
+  static getInstance() { return new AppConfig(); }
+}</code></pre>
+      <p>
+        No matter how many times you request it, <code>AppConfig.getInstance()</code>
+        (or even <code>new AppConfig()</code>) returns the <em>same</em> object.
+      </p>
+    </aside>
+  </main>
+
+  <footer>
+    Tip: Open DevTools → Console to see additional logs while you click the buttons.
+  </footer>
+
+  <script>
+    // --- Singleton Implementation -----------------------------------------
+    class AppConfig {
+      static #instance;
+      #id;
+      constructor() {
+        // If an instance already exists, always return it
+        if (AppConfig.#instance) return AppConfig.#instance;
+
+        // Initialize once
+        this.currency = "INR";
+        this.taxRate = 0.18;
+        this.discountPolicy = "FESTIVE10";
+        this.#id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now());
+
+        // Cache the instance
+        AppConfig.#instance = this;
+        console.info("[Singleton] AppConfig initialized.", this);
+      }
+      static getInstance() { return new AppConfig(); }
+      get id() { return this.#id; }
+      getConfig() { return { currency: this.currency, taxRate: this.taxRate, discountPolicy: this.discountPolicy, id: this.#id }; }
+    }
+
+    // --- Small UI harness --------------------------------------------------
+    const $ = (sel) => document.querySelector(sel);
+    const logEl = $("#log");
+    const idAEl = $("#idA");
+    const idBEl = $("#idB");
+    const eqEl = $("#eq");
+
+    let A = null;
+    let B = null;
+
+    function log(msg, obj) {
+      const time = new Date().toLocaleTimeString();
+      const line = document.createElement("div");
+      line.textContent = `[${time}] ${msg}`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+      if (obj) console.log(msg, obj);
+    }
+
+    $("#btnGetA").addEventListener("click", () => {
+      A = AppConfig.getInstance();
+      idAEl.textContent = A.id;
+      log("Got Instance A", A.getConfig());
+    });
+
+    $("#btnGetB").addEventListener("click", () => {
+      // Show that even using 'new' still returns the cached singleton
+      B = new AppConfig();
+      idBEl.textContent = B.id;
+      log("Got Instance B", B.getConfig());
+    });
+
+    $("#btnCompare").addEventListener("click", () => {
+      const same = (A && B) ? A === B : false;
+      eqEl.textContent = String(same);
+      log(`Compare A === B → ${same}`);
+    });
+
+    $("#btnMutate").addEventListener("click", () => {
+      if (!A) { log("Please get Instance A first."); return; }
+      A.discountPolicy = "FESTIVE20";
+      log("Mutated discountPolicy via A → FESTIVE20");
+    });
+
+    $("#btnShow").addEventListener("click", () => {
+      if (!B) { log("Please get Instance B first."); return; }
+      log("Config via B", B.getConfig());
+    });
+
+    // Pre-warm the singleton so users see a stable ID immediately on first click
+    AppConfig.getInstance();
+  </script>
+</body>
+</html>
