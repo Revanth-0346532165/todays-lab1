@@ -1,491 +1,66 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Singleton Pattern - Food Delivery App</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+// --- Singleton Pattern Implementation ---
+const AppConfig = (function() {
+    let instance;
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .demo-section {
-            background: #f8f9ff;
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border-left: 5px solid #667eea;
-        }
-
-        .demo-section h2 {
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .control-group {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .control-group input, .control-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .control-group input:focus, .control-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .instance-demo {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
-        }
-
-        .instance-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border: 3px solid #e1e8ed;
-            transition: all 0.3s;
-        }
-
-        .instance-card.same-instance {
-            border-color: #4caf50;
-            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
-        }
-
-        .instance-card h3 {
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .instance-id {
-            background: #667eea;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-family: monospace;
-        }
-
-        .config-display {
-            background: #f8f9ff;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            font-family: monospace;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .status {
-            text-align: center;
-            padding: 20px;
-            margin-top: 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-
-        .status.success {
-            background: linear-gradient(135deg, #4caf50, #45a049);
-            color: white;
-        }
-
-        .order-summary {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-top: 20px;
-        }
-
-        .order-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .order-total {
-            font-weight: bold;
-            font-size: 1.2em;
-            color: #ff6b6b;
-            border-top: 2px solid #ff6b6b;
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-
-        .highlight {
-            background: linear-gradient(45deg, #feca57, #ff9ff3);
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            text-align: center;
-            font-weight: 600;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-
-        @media (max-width: 768px) {
-            .controls, .instance-demo {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 2em;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header class="header">
-            <h1>🍕 FoodHub Delivery</h1>
-            <p>Demonstrating Singleton Pattern with AppConfig</p>
-        </header>
+    function createInstance() {
+        // Private configuration object
+        const config = {
+            currency: 'USD',
+            currencySymbol: '$',
+            taxRate: 8.5,
+            deliveryFee: 2.99,
+            discountPercentage: 10,
+        };
         
-        <main class="content">
-            <section class="demo-section">
-                <h2>🎛 App Configuration Manager</h2>
-                <p>This singleton manages global app settings that must remain consistent across the entire application.</p>
-                
-                <div class="controls">
-                    <div class="control-group">
-                        <label for="currency">Currency:</label>
-                        <select id="currency">
-                            <option value="USD">USD ($)</option>
-                            <option value="EUR">EUR (€)</option>
-                            <option value="GBP">GBP (£)</option>
-                            <option value="INR">INR (₹)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="taxRate">Tax Rate (%):</label>
-                        <input type="number" id="taxRate" value="8.5" min="0" max="30" step="0.1">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="deliveryFee">Delivery Fee:</label>
-                        <input type="number" id="deliveryFee" value="2.99" min="0" step="0.01">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="discount">Discount (%):</label>
-                        <input type="number" id="discount" value="10" min="0" max="100" step="1">
-                    </div>
-                </div>
-                
-                <button class="btn" onclick="updateConfig()">Update Configuration</button>
-            </section>
-            
-            <section class="demo-section">
-                <h2>🔍 Singleton Instance Verification</h2>
-                <p>Click the button below to create multiple "instances" and verify they all reference the same singleton object.</p>
-                
-                <button class="btn" onclick="demonstrateSingleton()">Create Multiple Instances</button>
-                
-                <div id="instanceDemo" class="instance-demo"></div>
-                
-                <div id="singletonStatus"></div>
-            </section>
-            
-            <section class="demo-section">
-                <h2>🛒 Order Calculator</h2>
-                <p>See how the singleton configuration affects order calculations across different parts of the app.</p>
-                
-                <div class="controls">
-                    <div class="control-group">
-                        <label for="itemPrice">Item Price:</label>
-                        <input type="number" id="itemPrice" value="15.99" min="0" step="0.01">
-                    </div>
-                    
-                    <div class="control-group">
-                        <label for="quantity">Quantity:</label>
-                        <input type="number" id="quantity" value="2" min="1" step="1">
-                    </div>
-                </div>
-                
-                <button class="btn" onclick="calculateOrder()">Calculate Order Total</button>
-                
-                <div id="orderSummary" class="order-summary" style="display: none;"></div>
-            </section>
-        </main>
-    </div>
+        // Private unique instance ID for demonstration
+        const instanceId = Math.random().toString(36).substring(2, 11);
+        const createdAt = new Date();
 
-    <script>
-        // --- Singleton Pattern Implementation ---
-        const AppConfig = (function() {
-            let instance;
-
-            function createInstance() {
-                // Private configuration object
-                const config = {
-                    currency: 'USD',
-                    currencySymbol: '$',
-                    taxRate: 8.5,
-                    deliveryFee: 2.99,
-                    discountPercentage: 10,
-                };
+        // Public API for the singleton instance
+        return {
+            updateCurrency(currency) {
+                const symbols = { USD: '$', EUR: '€', GBP: '£', INR: '₹' };
+                config.currency = currency;
+                config.currencySymbol = symbols[currency] || '$';
+            },
+            updateTaxRate(rate) {
+                config.taxRate = parseFloat(rate);
+            },
+            updateDeliveryFee(fee) {
+                config.deliveryFee = parseFloat(fee);
+            },
+            updateDiscount(percentage) {
+                config.discountPercentage = parseFloat(percentage);
+            },
+            formatCurrency(amount) {
+                return `${config.currencySymbol}${parseFloat(amount).toFixed(2)}`;
+            },
+            calculateTotal(itemPrice, quantity) {
+                const subtotal = itemPrice * quantity;
+                const discount = subtotal * (config.discountPercentage / 100);
+                const discountedSubtotal = subtotal - discount;
+                const tax = discountedSubtotal * (config.taxRate / 100);
+                const total = discountedSubtotal + tax + config.deliveryFee;
                 
-                // Private unique instance ID for demonstration
-                const instanceId = Math.random().toString(36).substring(2, 11);
-                const createdAt = new Date();
+                return { subtotal, discount, discountedSubtotal, tax, deliveryFee: config.deliveryFee, total };
+            },
+            // Expose necessary config and info for display
+            getInstanceInfo: () => ({
+                id: instanceId,
+                createdAt: createdAt,
+                config: { ...config }
+            })
+        };
+    }
 
-                // Public API for the singleton instance
-                return {
-                    updateCurrency(currency) {
-                        const symbols = { USD: '$', EUR: '€', GBP: '£', INR: '₹' };
-                        config.currency = currency;
-                        config.currencySymbol = symbols[currency] || '$';
-                    },
-                    updateTaxRate(rate) {
-                        config.taxRate = parseFloat(rate);
-                    },
-                    updateDeliveryFee(fee) {
-                        config.deliveryFee = parseFloat(fee);
-                    },
-                    updateDiscount(percentage) {
-                        config.discountPercentage = parseFloat(percentage);
-                    },
-                    formatCurrency(amount) {
-                        return ${config.currencySymbol}${parseFloat(amount).toFixed(2)};
-                    },
-                    calculateTotal(itemPrice, quantity) {
-                        const subtotal = itemPrice * quantity;
-                        const discount = subtotal * (config.discountPercentage / 100);
-                        const discountedSubtotal = subtotal - discount;
-                        const tax = discountedSubtotal * (config.taxRate / 100);
-                        const total = discountedSubtotal + tax + config.deliveryFee;
-                        
-                        return { subtotal, discount, discountedSubtotal, tax, deliveryFee: config.deliveryFee, total };
-                    },
-                    // Expose necessary config and info for display
-                    getInstanceInfo: () => ({
-                        id: instanceId,
-                        createdAt: createdAt,
-                        config: { ...config }
-                    })
-                };
+    // The public method to get the single instance
+    return {
+        getInstance: function() {
+            if (!instance) {
+                instance = createInstance();
+                console.log(`AppConfig singleton created with ID: ${instance.getInstanceInfo().id}`);
             }
-
-            // The public method to get the single instance
-            return {
-                getInstance: function() {
-                    if (!instance) {
-                        instance = createInstance();
-                        console.log(AppConfig singleton created with ID: ${instance.getInstanceInfo().id});
-                    }
-                    return instance;
-                }
-            };
-        })();
-
-        // --- UI Logic and Demonstration ---
-
-        function demonstrateSingleton() {
-            const instanceContainer = document.getElementById('instanceDemo');
-            const statusContainer = document.getElementById('singletonStatus');
-            const instances = [];
-            
-            instanceContainer.innerHTML = '';
-            
-            // Simulate different parts of the app getting the config instance
-            for (let i = 1; i <= 4; i++) {
-                const config = AppConfig.getInstance();
-                instances.push(config);
-                
-                const info = config.getInstanceInfo();
-                const card = document.createElement('div');
-                card.className = 'instance-card';
-                card.innerHTML = `
-                    <h3>Instance ${i} <span class="instance-id">ID: ${info.id}</span></h3>
-                    <div class="config-display">
-                        Currency: ${info.config.currency} (${info.config.currencySymbol})<br>
-                        Tax Rate: ${info.config.taxRate}%<br>
-                        Delivery Fee: ${config.formatCurrency(info.config.deliveryFee)}<br>
-                        Discount: ${info.config.discountPercentage}%<br>
-                        Created: ${info.createdAt.toLocaleTimeString()}
-                    </div>
-                `;
-                instanceContainer.appendChild(card);
-            }
-            
-            // Verify that all retrieved instances are the same object
-            const allSame = instances.every(instance => instance === instances[0]);
-            
-            if (allSame) {
-                document.querySelectorAll('.instance-card').forEach(card => card.classList.add('same-instance'));
-                statusContainer.innerHTML = `
-                    <div class="status success">
-                        ✅ SUCCESS: All variables point to the same singleton object!
-                    </div>
-                    <div class="highlight">
-                        🎉 Singleton Pattern Working Perfectly!
-                    </div>`;
-            }
+            return instance;
         }
-
-        function updateConfig() {
-            const config = AppConfig.getInstance();
-            
-            config.updateCurrency(document.getElementById('currency').value);
-            config.updateTaxRate(document.getElementById('taxRate').value);
-            config.updateDeliveryFee(document.getElementById('deliveryFee').value);
-            config.updateDiscount(document.getElementById('discount').value);
-            
-            // Re-run the visual demonstration to show updated values in all cards
-            demonstrateSingleton(); 
-            calculateOrder(); // Recalculate if order is displayed
-        }
-
-        function calculateOrder() {
-            const config = AppConfig.getInstance();
-            const itemPrice = parseFloat(document.getElementById('itemPrice').value);
-            const quantity = parseInt(document.getElementById('quantity').value);
-            
-            if (isNaN(itemPrice) || isNaN(quantity)) return;
-            
-            const calculation = config.calculateTotal(itemPrice, quantity);
-            const summaryContainer = document.getElementById('orderSummary');
-            summaryContainer.style.display = 'block';
-            summaryContainer.innerHTML = `
-                <h3>📋 Order Summary</h3>
-                <div class="order-item">
-                    <span>Subtotal (${quantity}x ${config.formatCurrency(itemPrice)}):</span>
-                    <span>${config.formatCurrency(calculation.subtotal)}</span>
-                </div>
-                <div class="order-item">
-                    <span>Discount (${config.getInstanceInfo().config.discountPercentage}%):</span>
-                    <span>-${config.formatCurrency(calculation.discount)}</span>
-                </div>
-                <div class="order-item">
-                    <span>Tax (${config.getInstanceInfo().config.taxRate}%):</span>
-                    <span>+${config.formatCurrency(calculation.tax)}</span>
-                </div>
-                <div class="order-item">
-                    <span>Delivery Fee:</span>
-                    <span>+${config.formatCurrency(calculation.deliveryFee)}</span>
-                </div>
-                <div class="order-item order-total">
-                    <span>Total:</span>
-                    <span>${config.formatCurrency(calculation.total)}</span>
-                </div>
-                <p style="margin-top: 15px; color: #666; font-size: 0.9em;">
-                    💡 This calculation uses the singleton AppConfig, ensuring consistent pricing.
-                </p>
-            `;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set up listeners for real-time updates
-            document.getElementById('currency').addEventListener('change', updateConfig);
-            document.getElementById('taxRate').addEventListener('input', updateConfig);
-            document.getElementById('deliveryFee').addEventListener('input', updateConfig);
-            document.getElementById('discount').addEventListener('input', updateConfig);
-            document.getElementById('itemPrice').addEventListener('input', calculateOrder);
-            document.getElementById('quantity').addEventListener('input', calculateOrder);
-
-            // Initial demonstration on page load
-            demonstrateSingleton();
-            calculateOrder();
-        });
-    </script>
-</body>
-</html>
+    };
+})();
